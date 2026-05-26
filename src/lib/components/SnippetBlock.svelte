@@ -45,14 +45,14 @@
   }
 </script>
 
-<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+<div class="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 lg:rounded-3xl lg:p-4">
   {#if editing}
     <input
-      class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+      class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:rounded-3xl lg:px-4 lg:py-3 lg:text-sm"
       bind:value={editLabel}
     />
     <textarea
-      class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+      class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:rounded-3xl lg:px-4 lg:py-3 lg:text-sm"
       rows="2"
       bind:value={editCode}
     />
@@ -73,8 +73,8 @@
   {:else}
     <div class="flex items-start justify-between gap-2">
       <div class="min-w-0 flex-1">
-        <p class="text-xs uppercase tracking-[0.18em] text-slate-400">{snippet.label}</p>
-        <code class="mt-1 block break-all text-xs text-slate-700 dark:text-slate-200">{snippet.code}</code>
+        <p class="text-xs uppercase tracking-[0.18em] text-slate-400 lg:text-[11px]">{snippet.label}</p>
+        <code class="mt-1 block break-all font-mono text-xs text-slate-700 dark:text-slate-200 lg:text-sm">{snippet.code}</code>
       </div>
       <div class="flex shrink-0 items-center gap-1">
         {#if !entryEditing}

@@ -14,25 +14,25 @@
   }
 </script>
 
-<div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-  <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Add Collection</h3>
+<div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:rounded-3xl lg:p-6">
+  <h3 class="text-sm font-semibold text-slate-900 dark:text-white lg:text-base">Add Collection</h3>
   <div class="mt-3 grid gap-3 sm:grid-cols-2">
     <input
       type="text"
       placeholder="Collection name"
-      class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+      class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:rounded-3xl lg:px-4 lg:py-3"
       bind:value={title}
     />
     <input
       type="text"
       placeholder="Short description"
-      class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+      class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:rounded-3xl lg:px-4 lg:py-3"
       bind:value={description}
     />
   </div>
   <div class="mt-3">
     <button
-      class="w-full rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 sm:w-auto sm:py-2"
+      class="w-full rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 sm:w-auto sm:py-2 lg:rounded-3xl lg:px-6 lg:py-3"
       on:click={handleSubmit}
     >
       Save Collection

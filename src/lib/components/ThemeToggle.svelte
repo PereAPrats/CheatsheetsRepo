@@ -3,7 +3,7 @@
 </script>
 
 <button
-  class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
+  class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 lg:h-10 lg:w-10 lg:rounded-2xl"
   on:click={theme.toggle}
   aria-label={$theme ? "Switch to light mode" : "Switch to dark mode"}
 >

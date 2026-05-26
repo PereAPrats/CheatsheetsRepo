@@ -86,6 +86,16 @@ Use Markdown files with frontmatter or JSON:
 - `npm run build`
 - `docker compose up --build`
 
+## Testing
+- All testing is done via Docker (not directly with Node/npm on the host).
+- Build and run: `docker compose up --build`
+- The app runs on `http://localhost:8080`
+- Data persists in a Docker volume (`cheatsheets-data` mounted at `/data`).
+- Server uses Express (not Nginx), serving the built Svelte app from `/app/dist` plus API endpoints on the same port.
+- To rebuild after frontend changes: stop containers, then run `docker compose up --build` again.
+- To view logs: `docker compose logs -f`
+- To reset data: `docker compose down -v && docker compose up --build`
+
 ## Output Expectations
 - Clean, minimal UI
 - Fast performance, small bundle
