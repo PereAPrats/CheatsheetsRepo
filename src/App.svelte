@@ -6,7 +6,6 @@
   import { updateCategory, deleteCategory } from "./lib/stores/data";
   import type { Category } from "./lib/types";
   import Header from "./lib/components/Header.svelte";
-  import BackButton from "./lib/components/BackButton.svelte";
   import SearchBar from "./lib/components/SearchBar.svelte";
   import CategoryForm from "./lib/components/CategoryForm.svelte";
   import CategoryCard from "./lib/components/CategoryCard.svelte";
@@ -100,7 +99,7 @@
 </script>
 
 <main class="min-h-screen p-5 pb-24 sm:p-8 lg:p-12 xl:p-14">
-  <Header />
+  <Header showBack={!!$selectedCategoryId} />
 
   <section class="mx-auto mt-6 max-w-7xl lg:mt-8">
     <div class="flex flex-col gap-3 lg:gap-4">
@@ -109,9 +108,7 @@
       {/if}
 
       {#if $selectedCategoryId}
-        <div class="flex gap-2 lg:gap-3">
-          <BackButton />
-          <div class="min-w-0 flex-1">
+        <div>
             <div class="flex items-center gap-2">
               <h2 class="text-lg font-semibold text-slate-900 dark:text-white lg:text-xl xl:text-2xl">
                 {currentCategory ? currentCategory.title : "Collections"}
@@ -143,7 +140,6 @@
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400 lg:text-base xl:text-lg">{currentCategory.description}</p>
             {/if}
           </div>
-        </div>
       {:else}
         <div>
           <div class="flex items-center gap-2">
