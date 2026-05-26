@@ -1,0 +1,40 @@
+{
+  "categories": [
+    {
+      "id": "linux",
+      "title": "Linux Essentials",
+      "description": "Core shell commands and navigation shortcuts.",
+      "items": [
+        {
+          "title": "Navigation",
+          "snippets": [
+            {
+              "label": "List files",
+              "code": "ls -la"
+            },
+            {
+              "label": "Change directory",
+              "code": "cd /var/www"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "git",
+      "title": "Git Workflow",
+      "description": "Branching, rebasing, and cleanup commands.",
+      "items": [
+        {
+          "title": "Cleanup",
+          "snippets": [
+            {
+              "label": "Prune merged branches",
+              "code": "git branch --merged | egrep -v '\\*|main|master' | xargs git branch -d"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
