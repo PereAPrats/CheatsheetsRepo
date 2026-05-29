@@ -1,10 +1,44 @@
 services:
-  app:
-    build: .
+  db-cheatsheets:
+    image: postgres:16-alpine
+    container_name: db-cheatsheets
+    env_file: .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api-cheatsheets:
+    build:
+      context: .
+      target: api
+    container_name: api-cheatsheets
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@db-cheatsheets:5432/${POSTGRES_DB}
+      - PORT=3001
+    depends_on:
+      db-cheatsheets:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web-cheatsheets:
+    build:
+      context: .
+      target: frontend
+    container_name: web-cheatsheets
     ports:
       - "8080:8080"
-    volumes:
-      - cheatsheets-data:/data
+    depends_on:
+      - api-cheatsheets
+    restart: unless-stopped
 
 volumes:
-  cheatsheets-data:
+  postgres-data:

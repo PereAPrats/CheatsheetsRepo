@@ -1,103 +1,83 @@
 # agents.md
 
 ## Project Overview
-Build a modern, mobile-first PWA for personal developer cheatsheets (Linux, Git, languages). The app is offline-capable, installable, and optimized for low resource usage. UI must be modern with heavy rounded corners (`rounded-2xl`+), smooth transitions, and a Dark/Light mode toggle.
+A mobile-first PWA for personal developer cheatsheets. Multi-user app with PostgreSQL, Express API, Nginx reverse proxy, and JWT authentication.
 
 ## Tech Stack
-- Frontend: Vite + Svelte + Tailwind CSS
+- Frontend: Vite + Svelte 4 + Tailwind CSS 3 + TypeScript
+- Backend: Express.js (ESM)
+- Database: PostgreSQL 16 (via `pg` module)
+- Auth: bcryptjs + jsonwebtoken
+- Reverse proxy: Nginx (SSL termination + static files + API proxy)
 - PWA: vite-plugin-pwa
-- Data: File-based Markdown/JSON (default). SQLite optional later.
-- Infra: Dockerized, served by Nginx.
+- Infra: Docker Compose with 3 containers
 
 ## Port Policy (Mandatory)
-- UI must run on port 8080.
+- UI must run on port 8080 (Nginx).
 - Never use port 3000.
-- Docker and dev server configs must bind to 8080.
 
-## Architecture Notes
-- UI-first, static content driven.
-- Content files in `content/` with categories and tags.
-- Use minimal runtime dependencies.
-- No backend required for initial MVP unless SQLite is enabled.
+## Containers
+| Name | Function | Image |
+|---|---|---|
+| `web-cheatsheets` | Nginx: serves SPA, proxies `/api/*` to API | nginx:alpine |
+| `api-cheatsheets` | Express: auth (JWT) + data CRUD per user | node:20-alpine |
+| `db-cheatsheets` | PostgreSQL: users table with JSONB data | postgres:16-alpine |
 
-## Project Structure (Target)
-- `src/`
-  - `lib/`
-    - `components/`
-    - `stores/`
-    - `utils/`
-  - `routes/` (if using SvelteKit) OR `pages/` for SPA
-  - `assets/`
-- `content/`
-  - `linux/`
-  - `git/`
-  - `languages/`
-- `public/`
-- `docker/`
-  - `nginx.conf`
-- `Dockerfile`
-- `docker-compose.yml`
+## Architecture
+- All traffic is HTTPS (self-signed cert in dev).
+- Nginx terminates SSL on port 8080.
+- Nginx proxies `/api/*` to `api-cheatsheets:3001` (internal HTTP).
+- Express runs on port 3001, no static file serving.
+- PostgreSQL stores users + their cheatsheet data in JSONB column.
+- JWT stored in localStorage; sent as `Authorization: Bearer` header.
 
-## Coding Standards
-- Use TypeScript where supported.
-- Keep components small and focused.
-- Tailwind only; no custom CSS unless necessary.
-- Use `rounded-2xl` or higher on cards and inputs.
-- Use CSS variables for theme colors.
-- Prefer semantic HTML and a11y attributes.
-- Avoid heavy libraries; keep bundle small.
+## API Endpoints
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| POST | /api/auth/register | No | Register new user |
+| POST | /api/auth/login | No | Login, get JWT |
+| GET | /api/auth/me | Yes | Get current user profile |
+| PUT | /api/auth/profile | Yes | Update email |
+| PUT | /api/auth/password | Yes | Change password |
+| GET | /api/data | Yes | Get user's cheatsheet data |
+| PUT | /api/data | Yes | Save user's cheatsheet data |
 
-## UI Requirements
-- Mobile-first layout
-- Cards with rounded corners, soft shadows
-- Smooth transitions for hover/tap/route changes
-- Dark/Light toggle with persistent preference
-- Search/filter UI for cheatsheets
-- Offline and installable (PWA)
+## Database Schema
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  data JSONB DEFAULT '{"categories":[]}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
-## Data Format (Default)
-Use Markdown files with frontmatter or JSON:
-- title
-- category
-- tags
-- description
-- commands/snippets list
-
-## Implementation Tasks (Follow Order)
-1. Scaffold Vite + Svelte + Tailwind (bind dev server to 8080)
-2. Configure PWA plugin + manifest/icons
-3. Build layout: header, navigation, main content grid
-4. Implement Dark/Light mode toggle and persistence
-5. Implement content loader for Markdown/JSON
-6. Build pages: Home, Category, Detail, Settings
-7. Add search and tag filters
-8. Dockerize with Nginx (serve on 8080)
-9. Validate PWA: offline, install flow, caching
-
-## Docker Requirements
-- Multi-stage build
-- Nginx serves `/dist`
-- Cache static assets
-- `docker-compose.yml` maps host 8080 to container 8080
-
-## Commands (Expected)
-- `npm install`
-- `npm run dev -- --host --port 8080`
-- `npm run build`
-- `docker compose up --build`
+## Project Structure
+- `src/lib/stores/auth.ts` - Auth store (login, register, logout, profile management)
+- `src/lib/stores/data.ts` - Data store (CRUD for categories/entries/snippets)
+- `src/lib/components/LoginForm.svelte` - Login form
+- `src/lib/components/RegisterForm.svelte` - Registration form
+- `src/lib/components/SettingsPanel.svelte` - Change email/password, sign out
+- `src/lib/components/UserButton.svelte` - User icon button in Header
+- `src/lib/utils/data.ts` - API data load/save with auth headers
+- `server.js` - Express API (ESM)
+- `docker/init-db.sh` - PostgreSQL init script (creates app user, table)
+- `docker/nginx.conf` - Nginx config with SSL + API proxy
+- `.env` - Environment variables (not committed)
 
 ## Testing
-- All testing is done via Docker (not directly with Node/npm on the host).
-- Build and run: `docker compose up --build`
-- The app runs on `http://localhost:8080`
-- Data persists in a Docker volume (`cheatsheets-data` mounted at `/data`).
-- Server uses Express (not Nginx), serving the built Svelte app from `/app/dist` plus API endpoints on the same port.
-- To rebuild after frontend changes: stop containers, then run `docker compose up --build` again.
-- To view logs: `docker compose logs -f`
-- To reset data: `docker compose down -v && docker compose up --build`
+- All testing via Docker: `docker compose up --build`
+- App runs on `https://localhost:8080`
+- Accept self-signed cert warning in browser
+- Reset all data: `docker compose down -v && docker compose up --build`
+- View logs: `docker compose logs -f`
 
-## Output Expectations
-- Clean, minimal UI
-- Fast performance, small bundle
-- Fully installable PWA
-- Works offline after first load
+## Key Rules
+- Mobile styles never changed; desktop uses `lg:`/`xl:` prefixes only.
+- Tailwind only, `rounded-2xl`+ on cards/inputs.
+- Username cannot be changed by user.
+- Username and email are unique in database.
+- Password encrypted with bcrypt; traffic encrypted with HTTPS.

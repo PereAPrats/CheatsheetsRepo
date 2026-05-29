@@ -1,51 +1,60 @@
-const express = require("express");
-const { readFileSync, writeFileSync, existsSync, mkdirSync } = require("fs");
-const { join } = require("path");
+import express from "express";
+import { readFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import pg from "pg";
 
-const DATA_DIR = process.env.DATA_DIR || "/data";
-const DATA_FILE = join(DATA_DIR, "data.json");
+const { Pool } = pg;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const PORT = parseInt(process.env.PORT || "3001", 10);
+const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  "postgresql://cheatsheets_app:4pp_s3cr3t@db-cheatsheets:5432/cheatsheets";
+
 const SEED_FILE = join(__dirname, "dist", "content", "index.json");
+
+const pool = new Pool({ connectionString: DATABASE_URL });
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
-app.use(express.static(join(__dirname, "dist")));
 
-function readData() {
-  if (existsSync(DATA_FILE)) {
-    return JSON.parse(readFileSync(DATA_FILE, "utf-8"));
-  }
-  mkdirSync(DATA_DIR, { recursive: true });
-  if (existsSync(SEED_FILE)) {
-    const seed = JSON.parse(readFileSync(SEED_FILE, "utf-8"));
-    writeFileSync(DATA_FILE, JSON.stringify(seed, null, 2));
-    return seed;
-  }
-  return { categories: [] };
+async function ensureRow() {
+  await pool.query(
+    `INSERT INTO cheatsheet_data (id, data) VALUES (1, '{"categories":[]}') ON CONFLICT (id) DO NOTHING`
+  );
 }
 
-app.get("/api/data", (_req, res) => {
+app.get("/api/data", async (req, res) => {
   try {
-    res.json(readData());
+    await ensureRow();
+    const result = await pool.query("SELECT data FROM cheatsheet_data WHERE id = 1");
+    let data = result.rows[0].data;
+    if (data.categories.length === 0 && existsSync(SEED_FILE)) {
+      const seed = JSON.parse(readFileSync(SEED_FILE, "utf-8"));
+      await pool.query("UPDATE cheatsheet_data SET data = $1 WHERE id = 1", [seed]);
+      data = seed;
+    }
+    res.json(data);
   } catch (err) {
+    console.error("Data read error:", err);
     res.status(500).json({ error: "Failed to read data" });
   }
 });
 
-app.put("/api/data", (req, res) => {
+app.put("/api/data", async (req, res) => {
   try {
-    mkdirSync(DATA_DIR, { recursive: true });
-    writeFileSync(DATA_FILE, JSON.stringify(req.body, null, 2));
+    await ensureRow();
+    await pool.query("UPDATE cheatsheet_data SET data = $1, updated_at = NOW() WHERE id = 1", [
+      req.body,
+    ]);
     res.json({ ok: true });
   } catch (err) {
+    console.error("Data write error:", err);
     res.status(500).json({ error: "Failed to save data" });
   }
 });
 
-app.use((_req, res) => {
-  res.sendFile(join(__dirname, "dist", "index.html"));
-});
-
-const PORT = parseInt(process.env.PORT || "8080", 10);
 app.listen(PORT, () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
