@@ -81,3 +81,11 @@ CREATE TABLE users (
 - Username cannot be changed by user.
 - Username and email are unique in database.
 - Password encrypted with bcrypt; traffic encrypted with HTTPS.
+
+## Pending Improvements (post-v2.0.0)
+1. **Toggle password visibility** — Add an eye button inside password fields (login, register, change password) to toggle masked/plain text.
+2. **Offline server notification** — When the service worker serves the app but the API is unreachable, show a persistent banner indicating no server connection.
+3. **Collection view UI overhaul** — Improve the layout and usability of the view inside a collection (entries + snippets) to match the quality of the main screen.
+4. **Desktop UI adaptation** — Review and improve layouts for desktop screens (`lg:`/`xl:` breakpoints) to better use horizontal space, not just scale up the mobile version.
+5. **Password recovery via email** — Forgot password flow: enter email → receive one-time code → reset password screen. Requires new API endpoints and email service (nodemailer).
+6. **Database normalization** — Evaluate migrating from JSONB to normalized tables (categories, entries, snippets) with foreign keys for better query flexibility and integrity.
