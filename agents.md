@@ -34,10 +34,10 @@ A mobile-first PWA for personal developer cheatsheets. Multi-user app with Postg
 ## API Endpoints
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| POST | /api/auth/register | No | Register new user |
+| POST | /api/auth/register | No | Register new user (name, username, email, password) |
 | POST | /api/auth/login | No | Login, get JWT |
 | GET | /api/auth/me | Yes | Get current user profile |
-| PUT | /api/auth/profile | Yes | Update email |
+| PUT | /api/auth/profile | Yes | Update name and/or email (requires current password) |
 | PUT | /api/auth/password | Yes | Change password |
 | GET | /api/data | Yes | Get user's cheatsheet data |
 | PUT | /api/data | Yes | Save user's cheatsheet data |
@@ -49,6 +49,7 @@ CREATE TABLE users (
   username VARCHAR(100) UNIQUE NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(150) NOT NULL DEFAULT '',
   data JSONB DEFAULT '{"categories":[]}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -59,8 +60,8 @@ CREATE TABLE users (
 - `src/lib/stores/auth.ts` - Auth store (login, register, logout, profile management)
 - `src/lib/stores/data.ts` - Data store (CRUD for categories/entries/snippets)
 - `src/lib/components/LoginForm.svelte` - Login form
-- `src/lib/components/RegisterForm.svelte` - Registration form
-- `src/lib/components/SettingsPanel.svelte` - Change email/password, sign out
+- `src/lib/components/RegisterForm.svelte` - Registration form (includes name field)
+- `src/lib/components/SettingsPanel.svelte` - Change name/email/password, sign out (collapsible menu)
 - `src/lib/components/UserButton.svelte` - User icon button in Header
 - `src/lib/utils/data.ts` - API data load/save with auth headers
 - `server.js` - Express API (ESM)
@@ -70,8 +71,7 @@ CREATE TABLE users (
 
 ## Testing
 - All testing via Docker: `docker compose up --build`
-- App runs on `https://localhost:8080`
-- Accept self-signed cert warning in browser
+- App runs on `http://localhost:8080`
 - Reset all data: `docker compose down -v && docker compose up --build`
 - View logs: `docker compose logs -f`
 
