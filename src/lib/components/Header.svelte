@@ -1,6 +1,8 @@
 <script lang="ts">
   import ThemeToggle from "./ThemeToggle.svelte";
   import BackButton from "./BackButton.svelte";
+  import UserButton from "./UserButton.svelte";
+  import { auth } from "../stores/auth";
 
   export let showBack: boolean = false;
 </script>
@@ -13,9 +15,10 @@
   {/if}
   <div class="min-w-0 flex-1 self-center">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 lg:tracking-[0.25em]">Personal Knowledge Base</p>
-    <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white lg:text-3xl lg:tracking-tighter">Cheatsheets</h1>
+    <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white lg:text-3xl lg:tracking-tighter">Hello {($auth.user?.name || $auth.user?.username).toUpperCase()}</h1>
   </div>
   <div class="flex items-center gap-2 self-center">
+    <UserButton />
     <ThemeToggle />
   </div>
 </header>

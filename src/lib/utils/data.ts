@@ -1,8 +1,16 @@
 import type { CheatsheetData } from "../types";
+import { getAuthToken } from "../stores/auth";
+
+function authHeaders(): Record<string, string> {
+  const token = getAuthToken();
+  if (!token) return {};
+  return { Authorization: `Bearer ${token}` };
+}
 
 async function loadFromAPI(): Promise<CheatsheetData | null> {
   try {
-    const res = await fetch("/api/data");
+    const res = await fetch("/api/data", { headers: { ...authHeaders() } });
+    if (res.status === 401) return null;
     if (!res.ok) return null;
     return (await res.json()) as CheatsheetData;
   } catch {
@@ -14,7 +22,7 @@ async function saveToAPI(data: CheatsheetData): Promise<boolean> {
   try {
     const res = await fetch("/api/data", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify(data),
     });
     return res.ok;
