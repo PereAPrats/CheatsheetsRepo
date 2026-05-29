@@ -7,6 +7,7 @@ type User = {
   id: number;
   username: string;
   email: string;
+  name: string;
   created_at: string;
 };
 
@@ -46,11 +47,11 @@ function createAuthStore() {
     set({ token: data.token, user: data.user });
   }
 
-  async function register(username: string, email: string, password: string): Promise<void> {
+  async function register(name: string, username: string, email: string, password: string): Promise<void> {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ name, username, email, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Registration failed");
@@ -63,7 +64,7 @@ function createAuthStore() {
 
   const store = { subscribe };
 
-  async function updateProfile(email: string, password: string): Promise<void> {
+  async function updateProfile(fields: { name?: string; email?: string }, password: string): Promise<void> {
     const t = get(store).token;
     if (!t) throw new Error("Not authenticated");
     const res = await fetch("/api/auth/profile", {
@@ -72,7 +73,7 @@ function createAuthStore() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${t}`,
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ ...fields, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to update profile");

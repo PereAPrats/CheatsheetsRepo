@@ -40,7 +40,7 @@ function authenticate(req, res, next) {
 
 app.post("/api/auth/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { name, username, email, password } = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ error: "username, email and password are required" });
     }
@@ -49,8 +49,8 @@ app.post("/api/auth/register", async (req, res) => {
     }
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email, created_at",
-      [username, email, hash]
+      "INSERT INTO users (username, email, password_hash, name) VALUES ($1, $2, $3, $4) RETURNING id, username, email, name, created_at",
+      [username, email, hash, name || ""]
     );
     const user = result.rows[0];
     const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, {
@@ -74,7 +74,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(400).json({ error: "username and password are required" });
     }
     const result = await pool.query(
-      "SELECT id, username, email, password_hash FROM users WHERE username = $1",
+      "SELECT id, username, email, name, password_hash FROM users WHERE username = $1",
       [username]
     );
     if (result.rows.length === 0) {
@@ -90,7 +90,7 @@ app.post("/api/auth/login", async (req, res) => {
     });
     res.json({
       token,
-      user: { id: user.id, username: user.username, email: user.email, created_at: user.created_at },
+      user: { id: user.id, username: user.username, email: user.email, name: user.name, created_at: user.created_at },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -101,7 +101,7 @@ app.post("/api/auth/login", async (req, res) => {
 app.get("/api/auth/me", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, username, email, created_at FROM users WHERE id = $1",
+      "SELECT id, username, email, name, created_at FROM users WHERE id = $1",
       [req.userId]
     );
     if (result.rows.length === 0) {
@@ -116,9 +116,9 @@ app.get("/api/auth/me", authenticate, async (req, res) => {
 
 app.put("/api/auth/profile", authenticate, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email) {
-      return res.status(400).json({ error: "email is required" });
+    const { name, email, password } = req.body;
+    if (!name && !email) {
+      return res.status(400).json({ error: "name or email is required" });
     }
     const userResult = await pool.query(
       "SELECT password_hash FROM users WHERE id = $1",
@@ -130,9 +130,22 @@ app.put("/api/auth/profile", authenticate, async (req, res) => {
     if (!password || !(await bcrypt.compare(password, userResult.rows[0].password_hash))) {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
+    const updates = [];
+    const values = [];
+    let idx = 1;
+    if (name !== undefined) {
+      updates.push(`name = $${idx++}`);
+      values.push(name);
+    }
+    if (email !== undefined) {
+      updates.push(`email = $${idx++}`);
+      values.push(email);
+    }
+    updates.push(`updated_at = NOW()`);
+    values.push(req.userId);
     const result = await pool.query(
-      "UPDATE users SET email = $1, updated_at = NOW() WHERE id = $2 RETURNING id, username, email, created_at",
-      [email, req.userId]
+      `UPDATE users SET ${updates.join(", ")} WHERE id = $${idx} RETURNING id, username, email, name, created_at`,
+      values
     );
     res.json({ user: result.rows[0] });
   } catch (err) {
