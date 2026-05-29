@@ -1,9 +1,12 @@
+// Data store — manages cheatsheet state and persists changes to the API
 import { writable, get } from "svelte/store";
 import type { CheatsheetData, Category } from "../types";
 import { loadCheatsheets, saveCheatsheets } from "../utils/data";
 
+// Internal writable store (not exposed directly to enforce save-on-change)
 const internal = writable<CheatsheetData | null>(null);
 
+// Persist the current state to the API
 function save() {
   const current = get(internal);
   if (current) {
@@ -11,6 +14,7 @@ function save() {
   }
 }
 
+// Public store — only exposes subscribe and set, no direct mutation
 export const data = {
   subscribe: internal.subscribe,
   set: internal.set,

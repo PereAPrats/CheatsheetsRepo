@@ -1,3 +1,4 @@
+// UI state store — toggles for modals and forms
 import { writable } from "svelte/store";
 
 export const manageMode = writable<boolean>(false);

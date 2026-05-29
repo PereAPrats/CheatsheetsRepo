@@ -1,6 +1,8 @@
+// API client for loading and saving cheatsheet data with JWT authentication
 import type { CheatsheetData } from "../types";
 import { getAuthToken } from "../stores/auth";
 
+// Build Authorization header from stored JWT token
 function authHeaders(): Record<string, string> {
   const token = getAuthToken();
   if (!token) return {};

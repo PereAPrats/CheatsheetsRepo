@@ -1,3 +1,4 @@
+// Express API server — authentication and cheatsheet data CRUD
 import express from "express";
 import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
@@ -9,12 +10,14 @@ import jwt from "jsonwebtoken";
 const { Pool } = pg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// Environment configuration with sensible defaults for Docker Compose
 const PORT = parseInt(process.env.PORT || "3001", 10);
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const DATABASE_URL =
   process.env.DATABASE_URL ||
   "postgresql://cheatsheets_app:4pp_s3cr3t@db-cheatsheets:5432/cheatsheets";
 
+// Path to seed data file bundled from public/content/index.json
 const SEED_FILE = join(__dirname, "dist", "content", "index.json");
 
 const pool = new Pool({ connectionString: DATABASE_URL });
@@ -22,6 +25,7 @@ const pool = new Pool({ connectionString: DATABASE_URL });
 const app = express();
 app.use(express.json({ limit: "10mb" }));
 
+// JWT verification middleware — extracts userId and username from Bearer token
 function authenticate(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith("Bearer ")) {
@@ -38,6 +42,7 @@ function authenticate(req, res, next) {
   }
 }
 
+// Create a new user account — returns JWT token and user profile
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
@@ -58,6 +63,7 @@ app.post("/api/auth/register", async (req, res) => {
     });
     res.status(201).json({ token, user });
   } catch (err) {
+    // PostgreSQL error 23505 = unique constraint violation
     if (err.code === "23505") {
       const field = err.constraint?.includes("username") ? "Username" : "Email";
       return res.status(409).json({ error: `${field} already exists` });
@@ -67,6 +73,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
+// Authenticate existing user — returns JWT token and user profile
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -98,6 +105,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+// Get the currently authenticated user's profile
 app.get("/api/auth/me", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
@@ -114,6 +122,7 @@ app.get("/api/auth/me", authenticate, async (req, res) => {
   }
 });
 
+// Update user profile — name and/or email (current password required for verification)
 app.put("/api/auth/profile", authenticate, async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -130,6 +139,7 @@ app.put("/api/auth/profile", authenticate, async (req, res) => {
     if (!password || !(await bcrypt.compare(password, userResult.rows[0].password_hash))) {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
+    // Dynamically build the SET clause to update only provided fields
     const updates = [];
     const values = [];
     let idx = 1;
@@ -157,6 +167,7 @@ app.put("/api/auth/profile", authenticate, async (req, res) => {
   }
 });
 
+// Change user password — requires current password verification
 app.put("/api/auth/password", authenticate, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -188,6 +199,7 @@ app.put("/api/auth/password", authenticate, async (req, res) => {
   }
 });
 
+// Get the authenticated user's cheatsheet data (auto-seeds from JSON file if empty)
 app.get("/api/data", authenticate, async (req, res) => {
   try {
     const result = await pool.query("SELECT data FROM users WHERE id = $1", [req.userId]);
@@ -195,6 +207,7 @@ app.get("/api/data", authenticate, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     let data = result.rows[0].data;
+    // Auto-seed first-time users with default cheatsheet content
     if (data.categories.length === 0 && existsSync(SEED_FILE)) {
       const seed = JSON.parse(readFileSync(SEED_FILE, "utf-8"));
       await pool.query("UPDATE users SET data = $1 WHERE id = $2", [seed, req.userId]);
@@ -207,6 +220,7 @@ app.get("/api/data", authenticate, async (req, res) => {
   }
 });
 
+// Save the authenticated user's cheatsheet data (replaces entire JSONB blob)
 app.put("/api/data", authenticate, async (req, res) => {
   try {
     await pool.query("UPDATE users SET data = $1, updated_at = NOW() WHERE id = $2", [

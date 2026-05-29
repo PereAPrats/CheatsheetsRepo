@@ -1,4 +1,5 @@
 <script lang="ts">
+  // User icon button in the header — opens the settings panel
   import { auth } from "../stores/auth";
   import { showSettings } from "../stores/ui";
 </script>

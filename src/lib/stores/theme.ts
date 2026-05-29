@@ -1,6 +1,8 @@
+// Theme store — persists dark/light mode preference to localStorage and applies to DOM
 import { writable, get } from "svelte/store";
 
 function createThemeStore() {
+  // Read saved preference or fall back to system preference
   const saved = typeof localStorage !== "undefined" ? localStorage.getItem("theme") : null;
   const prefersDark =
     typeof window !== "undefined"

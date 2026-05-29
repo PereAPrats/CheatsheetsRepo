@@ -1,4 +1,5 @@
 <script lang="ts">
+  // Registration form — creates a new account with name, username, email, and password
   import { auth } from "../stores/auth";
 
   export let onSwitch: () => void = () => {};

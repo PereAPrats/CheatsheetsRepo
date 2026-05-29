@@ -1,4 +1,5 @@
 <script lang="ts">
+  // Settings modal — collapsible menu for changing name, email, and password
   import { auth } from "../stores/auth";
 
   export let onClose: () => void = () => {};

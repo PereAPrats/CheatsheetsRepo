@@ -1,3 +1,4 @@
+// Svelte store for authentication state — persists JWT and user to localStorage
 import { writable, get } from "svelte/store";
 
 const TOKEN_KEY = "dev-cheatsheets-token";
@@ -17,6 +18,7 @@ type AuthState = {
 };
 
 function createAuthStore() {
+  // Restore session from localStorage on page load
   const savedToken = typeof localStorage !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
   const savedUser = typeof localStorage !== "undefined" ? localStorage.getItem(USER_KEY) : null;
 
@@ -27,6 +29,7 @@ function createAuthStore() {
 
   const { subscribe, set } = writable<AuthState>(initial);
 
+  // Persist state changes to localStorage automatically
   subscribe(({ token, user }) => {
     if (typeof localStorage !== "undefined") {
       if (token) localStorage.setItem(TOKEN_KEY, token);
@@ -100,6 +103,7 @@ function createAuthStore() {
 
 export const auth = createAuthStore();
 
+// Utility to read the raw token from localStorage (used by data.ts for API calls)
 export function getAuthToken(): string | null {
   if (typeof localStorage !== "undefined") {
     return localStorage.getItem(TOKEN_KEY);
