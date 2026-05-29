@@ -1,4 +1,5 @@
 <script lang="ts">
+  // Root component — handles auth gate, data loading, search/filter, and CRUD
   import { onMount } from "svelte";
   import { loadData, data } from "./lib/stores/data";
   import { selectedCategoryId, searchTerm, entrySearch } from "./lib/stores/navigation";
@@ -25,6 +26,7 @@
   let editDescription = "";
   let showingLogin = true;
 
+  // Load data on mount if user is already authenticated (session restored from localStorage)
   onMount(async () => {
     if (!$auth.user) return;
     try {
@@ -34,12 +36,14 @@
     }
   });
 
+  // Reactively load data when user logs in, clear when they log out
   $: if ($auth.user) {
     loadData();
   } else {
     data.set(null);
   }
 
+  // Compute visible categories and filtered items based on search terms
   $: {
     if (!$data) {
       visibleCategories = [];
@@ -111,12 +115,14 @@
 </script>
 
 {#if !$auth.user}
+  <!-- Auth gate: show login or register form when not authenticated -->
   {#if showingLogin}
     <LoginForm onSwitch={() => (showingLogin = false)} />
   {:else}
     <RegisterForm onSwitch={() => (showingLogin = true)} />
   {/if}
 {:else}
+  <!-- Main application for authenticated users -->
   <main class="min-h-screen p-5 pb-24 sm:p-8 lg:p-12 xl:p-14">
     <Header showBack={!!$selectedCategoryId} />
 

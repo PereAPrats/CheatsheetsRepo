@@ -1,4 +1,5 @@
 <script lang="ts">
+  // Login form — authenticates existing users via the auth store
   import { auth } from "../stores/auth";
 
   export let onSwitch: () => void = () => {};

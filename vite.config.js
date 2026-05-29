@@ -1,3 +1,4 @@
+// Vite configuration — Svelte + TypeScript + Tailwind + PWA (service worker with auto-update)
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { VitePWA } from "vite-plugin-pwa";
@@ -9,6 +10,7 @@ export default defineConfig({
       preprocess: sveltePreprocess(),
     }),
     VitePWA({
+      // Auto-update service worker without prompting the user
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "pwa.svg"],
       manifest: {
@@ -29,6 +31,7 @@ export default defineConfig({
       },
     }),
   ],
+  // Expose dev server on all network interfaces for Docker/ LAN access
   server: {
     host: true,
     port: 8080,

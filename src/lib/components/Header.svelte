@@ -1,4 +1,5 @@
 <script lang="ts">
+  // App header — displays greeting, navigation controls, and user/theme buttons
   import ThemeToggle from "./ThemeToggle.svelte";
   import BackButton from "./BackButton.svelte";
   import UserButton from "./UserButton.svelte";

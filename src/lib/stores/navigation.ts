@@ -1,3 +1,4 @@
+// Navigation store — tracks selected category, search terms, and derived filtered lists
 import { writable, derived } from "svelte/store";
 import { data } from "./data";
 
