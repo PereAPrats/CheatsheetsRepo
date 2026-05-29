@@ -8,7 +8,7 @@ RUN npm run build
 FROM node:20-alpine AS api
 WORKDIR /app
 COPY package.json .
-RUN npm install express pg
+RUN npm install express pg bcryptjs jsonwebtoken
 COPY --from=build /app/dist /app/dist
 COPY server.js .
 EXPOSE 3001

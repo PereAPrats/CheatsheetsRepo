@@ -23,6 +23,7 @@ services:
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@db-cheatsheets:5432/${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=3001
     depends_on:
       db-cheatsheets:
